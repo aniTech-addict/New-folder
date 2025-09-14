@@ -1,4 +1,9 @@
 // Simple SVG icon components to replace lucide-react
+export { default as SimplePlane } from './SimplePlane';
+export { default as SimpleShield } from './SimpleShield';
+export { default as SimpleAlertTriangle } from './SimpleAlertTriangle';
+
+
 export const Shield = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
