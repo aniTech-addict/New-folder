@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Search, AlertCircle, CheckCircle } from 'lucide-react';
-import { convertNaturalLanguageToSQL, executeSQLQuery, testGoogleAIConnection, simpleGoogleAITest, QueryResult } from '@/lib/ai-query';
+import { convertNaturalLanguageToSQL, executeSQLQuery, testOpenRouterConnection, simpleOpenRouterTest, QueryResult } from '@/lib/ai-query';
 
 export function AIQueryInterface() {
   const [query, setQuery] = useState('');
@@ -24,7 +24,7 @@ export function AIQueryInterface() {
 
     try {
       console.log('🧪 Starting API connection test...');
-      const testResult = await testGoogleAIConnection();
+      const testResult = await testOpenRouterConnection();
       setConnectionTestResult({
         success: testResult.success,
         message: testResult.message
