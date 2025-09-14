@@ -4,6 +4,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, Plane, Users, Target, Award, BarChart3 } from "lucide-react"
+import { SimplePlane, SimpleShield, SimpleAlertTriangle } from '@/components/icons/simple-icons';
+
 
 export default async function HomePage() {
   const supabase = await createClient()
