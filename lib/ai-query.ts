@@ -1,67 +1,57 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Simple direct approach - no lazy loading complexity
-export function createOpenRouterClient(apiKey?: string): OpenAI {
-  console.log('🚀 Creating OpenRouter client...');
+export function createGeminiClient(apiKey?: string): GoogleGenerativeAI {
+  console.log('🚀 Creating Google Gemini client...');
 
   // Use provided API key or try to get from environment
-  const keyToUse = apiKey || process.env.OPENROUTER_API_KEY;
+  const keyToUse = apiKey || process.env.GOOGLE_GEMINI_API_KEY;
 
   if (!keyToUse) {
-    throw new Error('No API key provided. Set OPENROUTER_API_KEY environment variable, or pass the key directly.');
+    throw new Error('No API key provided. Set GOOGLE_GEMINI_API_KEY environment variable, or pass the key directly.');
   }
 
   console.log('🔑 Using API key that starts with:', keyToUse.substring(0, 10) + '...');
 
   try {
-    const client = new OpenAI({
-      apiKey: keyToUse.trim(),
-      baseURL: 'https://openrouter.ai/api/v1',
-    });
-    console.log('✅ OpenRouter client created successfully');
+    const client = new GoogleGenerativeAI(keyToUse.trim());
+    console.log('✅ Google Gemini client created successfully');
     return client;
   } catch (error) {
-    console.error('❌ Failed to create OpenRouter client:', error);
+    console.error('❌ Failed to create Google Gemini client:', error);
     throw error;
   }
 }
 
 // Simple test function
-export async function simpleOpenRouterTest(apiKey?: string): Promise<{ success: boolean; message: string; response?: string }> {
+export async function simpleGeminiTest(apiKey?: string): Promise<{ success: boolean; message: string; response?: string }> {
   try {
-    console.log('🧪 Starting simple OpenRouter test...');
+    console.log('🧪 Starting simple Gemini test...');
 
     // Use the provided API key directly, or the user's specific key
-    const testKey = apiKey || process.env.OPENROUTER_API_KEY;
+    const testKey = apiKey || process.env.GOOGLE_GEMINI_API_KEY;
     if (!testKey) {
-      throw new Error('No OpenRouter API key provided');
+      throw new Error('No Google Gemini API key provided');
     }
     console.log('🔑 Testing with API key:', testKey.substring(0, 15) + '...');
 
     // Create client directly with the test key
-    const client = new OpenAI({
-      apiKey: testKey.trim(),
-      baseURL: 'https://openrouter.ai/api/v1',
-    });
-    console.log('✅ OpenRouter client created with direct key');
+    const client = new GoogleGenerativeAI(testKey.trim());
+    const model = client.getGenerativeModel({ model: 'gemini-pro' });
+    console.log('✅ Gemini client created with direct key');
 
     console.log('📤 Sending test prompt...');
-    const completion = await client.chat.completions.create({
-      model: 'google/gemini-pro',
-      messages: [{ role: 'user', content: 'Say "Hello from OpenRouter!" and nothing else.' }],
-      max_tokens: 50,
-    });
-
-    const text = completion.choices[0]?.message?.content || '';
+    const result = await model.generateContent('Say "Hello from Google Gemini!" and nothing else.');
+    const text = result.response.text();
     console.log('📥 Received response:', text);
 
     return {
       success: true,
-      message: 'OpenRouter test successful!',
+      message: 'Google Gemini test successful!',
       response: text
     };
   } catch (error) {
-    console.error('❌ OpenRouter test failed:', error);
+    console.error('❌ Google Gemini test failed:', error);
     console.error('Error details:', error instanceof Error ? error.message : String(error));
     console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
     return {
@@ -82,9 +72,10 @@ export async function convertNaturalLanguageToSQL(naturalQuery: string): Promise
   console.log('🚀 Starting convertNaturalLanguageToSQL with query:', naturalQuery);
 
   try {
-    console.log('🔧 Creating OpenRouter client...');
-    const client = createOpenRouterClient();
-    console.log('✅ OpenRouter client ready');
+    console.log('🔧 Creating Google Gemini client...');
+    const client = createGeminiClient();
+    const model = client.getGenerativeModel({ model: 'gemini-pro' });
+    console.log('✅ Google Gemini client ready');
 
     const schemaDescription = `
 Database Schema:
@@ -122,17 +113,12 @@ SQL: [your SQL query here]
 Explanation: [brief explanation]
 `;
 
-    console.log('📤 Sending prompt to OpenRouter API...');
+    console.log('📤 Sending prompt to Google Gemini API...');
     console.log('Prompt length:', prompt.length);
 
-    const completion = await client.chat.completions.create({
-      model: 'google/gemini-pro',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 2048,
-      temperature: 0.1,
-    });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
 
-    const text = completion.choices[0]?.message?.content || '';
     console.log('📝 Raw response text length:', text.length);
     console.log('📝 Raw response preview:', text.substring(0, 200) + '...');
 
@@ -163,14 +149,14 @@ Explanation: [brief explanation]
     console.log('✅ Parsed SQL query:', sql.substring(0, 100) + (sql.length > 100 ? '...' : ''));
     console.log('✅ Parsed explanation:', explanation);
 
-    const result = {
+    const queryResult = {
       sql,
       explanation,
       data: []
     };
 
     console.log('🎉 Successfully converted natural language to SQL');
-    return result;
+    return queryResult;
   } catch (error) {
     console.error('❌ Error converting natural language to SQL:');
     console.error('Error type:', error?.constructor?.name || 'Unknown');
@@ -181,11 +167,11 @@ Explanation: [brief explanation]
     let errorMessage = 'Unknown error occurred';
     if (error instanceof Error) {
       if (error.message.includes('API_KEY') || error.message.includes('401')) {
-        errorMessage = 'OpenRouter API key is invalid or expired';
+        errorMessage = 'Google Gemini API key is invalid or expired';
       } else if (error.message.includes('quota') || error.message.includes('limit') || error.message.includes('429')) {
-        errorMessage = 'OpenRouter API quota exceeded';
+        errorMessage = 'Google Gemini API quota exceeded';
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        errorMessage = 'Network error connecting to OpenRouter API';
+        errorMessage = 'Network error connecting to Google Gemini API';
       } else {
         errorMessage = error.message;
       }
@@ -201,30 +187,25 @@ Explanation: [brief explanation]
 }
 
 // Test function to verify API key works
-export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string; details?: any }> {
-  console.log('🧪 Testing OpenRouter API connection...');
+export async function testGeminiConnection(): Promise<{ success: boolean; message: string; details?: any }> {
+  console.log('🧪 Testing Google Gemini API connection...');
 
   try {
-    const client = createOpenRouterClient();
+    const client = createGeminiClient();
     console.log('✅ Client initialized for testing');
 
-    // Try different models available on OpenRouter
-    const modelsToTry = ['google/gemini-pro', 'google/gemini-flash-1.5', 'anthropic/claude-3-haiku'];
+    // Try different models available on Google Gemini
+    const modelsToTry = ['gemini-pro', 'gemini-1.5-flash'];
 
     for (const modelName of modelsToTry) {
       try {
         console.log(`🔄 Testing model: ${modelName}`);
 
+        const model = client.getGenerativeModel({ model: modelName });
         // Simple test prompt
         const testPrompt = "Say 'Hello, API test successful!' and nothing else.";
-        const completion = await client.chat.completions.create({
-          model: modelName,
-          messages: [{ role: 'user', content: testPrompt }],
-          max_tokens: 50,
-          temperature: 0.1,
-        });
-
-        const text = completion.choices[0]?.message?.content || '';
+        const result = await model.generateContent(testPrompt);
+        const text = result.response.text();
 
         console.log(`✅ Model ${modelName} test successful:`, text.substring(0, 50) + '...');
 
